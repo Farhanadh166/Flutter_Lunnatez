@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class AppConstants {
-  static const String baseUrl = 'http://192.168.1.26/Project_Akhir_Kelompok/public';
+  static const String baseUrl = 'http://192.168.1.26/Project_Akhir_Kelompok_Lunnatez/public';
   // API Endpoints
   static const String loginEndpoint = '/api/login';
   static const String registerEndpoint = '/api/register';
