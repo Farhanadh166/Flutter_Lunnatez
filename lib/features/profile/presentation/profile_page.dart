@@ -41,10 +41,12 @@ class ProfilePage extends StatelessWidget {
                     colors: [Color(0xFFF5F6FA), Color(0xFFE9D8FD)],
                   ),
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.max,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
                     const SizedBox(height: 20),
                     // Card Profil
                     Container(
@@ -251,6 +253,7 @@ class ProfilePage extends StatelessWidget {
                 ),
               ),
             ),
+          )
           );
         },
       ),
