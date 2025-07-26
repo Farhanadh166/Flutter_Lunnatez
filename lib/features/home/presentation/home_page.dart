@@ -264,10 +264,28 @@ class _HomePageState extends State<HomePage> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Image.asset(
-                              'assets/empty_state.png',
-                              width: 120,
-                              height: 120,
+                            // Ilustrasi lucu dengan animasi
+                            TweenAnimationBuilder<double>(
+                              tween: Tween(begin: 0.0, end: 1.0),
+                              duration: const Duration(milliseconds: 800),
+                              builder: (context, value, child) {
+                                return Transform.scale(
+                                  scale: value,
+                                  child: Container(
+                                    width: 120,
+                                    height: 120,
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primaryPurple.withOpacity(0.1),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: Icon(
+                                      Icons.search_off_rounded,
+                                      size: 60,
+                                      color: AppColors.primaryPurple,
+                                    ),
+                                  ),
+                                );
+                              },
                             ),
                             const SizedBox(height: 18),
                             const Text(
@@ -288,6 +306,24 @@ class _HomePageState extends State<HomePage> {
                                 fontFamily: 'Poppins',
                               ),
                               textAlign: TextAlign.center,
+                            ),
+                            const SizedBox(height: 20),
+                            // Tombol untuk reset pencarian
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _searchController.clear();
+                                context.read<HomeProvider>().clearSearch();
+                              },
+                              icon: const Icon(Icons.refresh_rounded, size: 18),
+                              label: const Text('Coba Lagi'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primaryPurple,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                              ),
                             ),
                           ],
                         ),
@@ -399,7 +435,7 @@ class _HomePageState extends State<HomePage> {
                       backgroundColor: AppColors.lightPurple,
                       backgroundImage: _photoUrl.isNotEmpty
                           ? NetworkImage(_photoUrl)
-                          : const AssetImage('assets/avatar_placeholder.png') as ImageProvider,
+                          : null,
                       child: Container(),
                     ),
                   ),

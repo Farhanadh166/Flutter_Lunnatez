@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'payment_method.dart';
 import 'bank_info.dart';
 import 'payment_status.dart';
@@ -41,8 +40,7 @@ class PaymentService {
       // Handle redirect status codes
       if (response.statusCode == 302 || response.statusCode == 301) {
         debugPrint('PaymentService.getPaymentMethods - Redirect detected, likely token expired');
-        // Clear expired token
-        await _clearExpiredToken();
+        // Jangan logout otomatis, hanya tampilkan pesan error
         throw Exception('Token tidak valid atau expired. Silakan login ulang.');
       }
       
@@ -86,8 +84,7 @@ class PaymentService {
       // Handle specific DioException types
       if (e.type == DioExceptionType.badResponse) {
         if (e.response?.statusCode == 302 || e.response?.statusCode == 301) {
-          // Clear expired token
-          await _clearExpiredToken();
+          // Jangan logout otomatis, hanya tampilkan pesan error
           throw Exception('Token tidak valid atau expired. Silakan login ulang.');
         }
         throw Exception('Server error: ${e.response?.statusCode}');
@@ -123,8 +120,7 @@ class PaymentService {
       // Handle redirect status codes
       if (response.statusCode == 302 || response.statusCode == 301) {
         debugPrint('PaymentService.getBankInfo - Redirect detected, likely token expired');
-        // Clear expired token
-        await _clearExpiredToken();
+        // Jangan logout otomatis, hanya tampilkan pesan error
         throw Exception('Token tidak valid atau expired. Silakan login ulang.');
       }
       
@@ -249,8 +245,7 @@ class PaymentService {
       // Handle redirect status codes
       if (response.statusCode == 302 || response.statusCode == 301) {
         debugPrint('PaymentService.uploadProof - Redirect detected, likely token expired');
-        // Clear expired token
-        await _clearExpiredToken();
+        // Jangan logout otomatis, hanya tampilkan pesan error
         throw Exception('Token tidak valid atau expired. Silakan login ulang.');
       }
       
@@ -280,8 +275,7 @@ class PaymentService {
       // Handle specific DioException types
       if (e.type == DioExceptionType.badResponse) {
         if (e.response?.statusCode == 302 || e.response?.statusCode == 301) {
-          // Clear expired token
-          await _clearExpiredToken();
+          // Jangan logout otomatis, hanya tampilkan pesan error
           throw Exception('Token tidak valid atau expired. Silakan login ulang.');
         }
         throw Exception('Server error: ${e.response?.statusCode}');
@@ -573,8 +567,7 @@ class PaymentService {
       // Handle redirect status codes
       if (response.statusCode == 302 || response.statusCode == 301) {
         debugPrint('PaymentService.getPaymentStatus - Redirect detected, likely token expired');
-        // Clear expired token
-        await _clearExpiredToken();
+        // Jangan logout otomatis, hanya tampilkan pesan error
         throw Exception('Token tidak valid atau expired. Silakan login ulang.');
       }
       
@@ -677,14 +670,5 @@ class PaymentService {
     }
   }
 
-  Future<void> _clearExpiredToken() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('token');
-      debugPrint('PaymentService._clearExpiredToken - Token cleared from SharedPreferences');
-    } catch (e, stackTrace) {
-      debugPrint('PaymentService._clearExpiredToken - Error clearing token: $e');
-      debugPrint('PaymentService._clearExpiredToken - Stack trace: $stackTrace');
-    }
-  }
+
 } 

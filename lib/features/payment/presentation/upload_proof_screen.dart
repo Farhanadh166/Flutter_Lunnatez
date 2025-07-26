@@ -105,7 +105,10 @@ class _UploadProofScreenState extends State<UploadProofScreen> {
           SnackBar(content: Text(_statusMessage!), backgroundColor: AppColors.success),
         );
         await Future.delayed(const Duration(seconds: 2));
-        if (mounted) Navigator.of(context).popUntil((route) => route.isFirst);
+        if (mounted) {
+          // Kembali ke keranjang setelah pembayaran berhasil
+          Navigator.of(context).pushNamedAndRemoveUntil('/cart', (route) => false);
+        }
       } else {
         setState(() { _statusMessage = response['message'] ?? 'Gagal membuat pesanan.'; });
         ScaffoldMessenger.of(context).showSnackBar(

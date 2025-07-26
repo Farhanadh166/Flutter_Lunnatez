@@ -242,7 +242,8 @@ class _PaymentMethodScreenState extends State<PaymentMethodScreen> {
                     actions: [
                       TextButton(
                         onPressed: () {
-                          Navigator.of(context).popUntil((route) => route.isFirst);
+                          // Kembali ke keranjang setelah pembayaran berhasil
+                          Navigator.of(context).pushNamedAndRemoveUntil('/cart', (route) => false);
                         },
                         child: const Text('OK'),
                       ),

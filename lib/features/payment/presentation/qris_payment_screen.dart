@@ -56,7 +56,8 @@ class _QrisPaymentScreenState extends State<QrisPaymentScreen> {
       await Future.delayed(const Duration(seconds: 2));
       if (mounted) {
         Provider.of<CartProvider>(context, listen: false).clearCart();
-        Navigator.of(context).popUntil((route) => route.isFirst);
+        // Kembali ke keranjang setelah pembayaran berhasil
+        Navigator.of(context).pushNamedAndRemoveUntil('/cart', (route) => false);
       }
     } catch (e) {
       setState(() {
