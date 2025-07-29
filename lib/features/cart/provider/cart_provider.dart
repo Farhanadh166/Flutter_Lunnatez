@@ -174,4 +174,45 @@ class CartProvider extends ChangeNotifier {
     loadingItemIds.clear();
     notifyListeners();
   }
+
+  // Force refresh cart data dari server
+  Future<void> forceRefresh() async {
+    debugPrint('CartProvider.forceRefresh - Force refreshing cart data');
+    isLoading = true;
+    error = null;
+    notifyListeners();
+    
+    try {
+      final result = await CartService.fetchCart();
+      debugPrint('CartProvider.forceRefresh - API result: $result');
+      
+      items = result['items'] as List<CartItem>;
+      debugPrint('CartProvider.forceRefresh - Items count: ${items.length}');
+      
+      final summary = result['summary'] as Map<String, dynamic>;
+      totalItems = summary['total_items'] ?? items.fold(0, (sum, e) => sum + e.quantity);
+      totalAmount = summary['total_amount'] ?? items.fold(0, (sum, e) => sum + e.totalHarga);
+      
+      debugPrint('CartProvider.forceRefresh - Total items: $totalItems, Total amount: $totalAmount');
+      error = null;
+    } catch (e, stackTrace) {
+      debugPrint('CartProvider.forceRefresh - Error: $e');
+      debugPrint('CartProvider.forceRefresh - Stack trace: $stackTrace');
+      error = e.toString();
+      items = [];
+      totalItems = 0;
+      totalAmount = 0;
+    }
+    
+    isLoading = false;
+    notifyListeners();
+  }
+
+  // Clear cache dan refresh dari server
+  Future<void> clearCacheAndRefresh() async {
+    debugPrint('CartProvider.clearCacheAndRefresh - Clearing cache and refreshing');
+    clearState();
+    await Future.delayed(const Duration(milliseconds: 100)); // Small delay
+    await forceRefresh();
+  }
 } 

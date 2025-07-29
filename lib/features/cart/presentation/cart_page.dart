@@ -3,8 +3,23 @@ import 'package:provider/provider.dart';
 import '../provider/cart_provider.dart';
 import '../../../shared/widgets/cart_item_widget.dart';
 
-class CartPage extends StatelessWidget {
+class CartPage extends StatefulWidget {
   const CartPage({super.key});
+
+  @override
+  State<CartPage> createState() => _CartPageState();
+}
+
+class _CartPageState extends State<CartPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Auto refresh cart saat masuk ke halaman
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      cart.forceRefresh();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,9 +109,27 @@ class CartPage extends StatelessWidget {
                     children: [
                       const Icon(Icons.shopping_cart, color: Color(0xFF7C3AED)),
                       const SizedBox(width: 8),
-                      Text(
-                        'Keranjang ( ${cart.uniqueItemsCount} item)',
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                      Expanded(
+                        child: Text(
+                          'Keranjang ( ${cart.uniqueItemsCount} item)',
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () async {
+                          await cart.forceRefresh();
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Keranjang diperbarui'),
+                                backgroundColor: Color(0xFF22C55E),
+                                duration: Duration(seconds: 2),
+                              ),
+                            );
+                          }
+                        },
+                        icon: const Icon(Icons.refresh, color: Color(0xFF7C3AED)),
+                        tooltip: 'Refresh keranjang',
                       ),
                     ],
                   ),

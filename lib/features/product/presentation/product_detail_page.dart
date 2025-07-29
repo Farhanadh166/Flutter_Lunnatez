@@ -36,25 +36,36 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   List<Product> _relatedProducts = [];
   bool _isLoadingRelated = false;
   bool _isInCart = false;
+  bool _hasInitializedRelated = false; // Prevent multiple initialization
 
   @override
   void initState() {
     super.initState();
     _futureProduct = ProductService.getProductDetail(widget.productId);
+    _hasInitializedRelated = false;
   }
 
   Future<void> _fetchRelatedProducts(int kategoriId, int currentProductId) async {
+    if (_isLoadingRelated) return; // Prevent multiple calls
+    
     setState(() { _isLoadingRelated = true; });
     try {
       final products = await ProductService.getProductsByCategory(kategoriId);
-      setState(() {
-        _relatedProducts = products.where((p) => p.id != currentProductId).toList();
-        debugPrint('Related products fetched: ${_relatedProducts.length}');
-      });
-    } catch (_) {
-      setState(() { _relatedProducts = []; });
+      if (mounted) {
+        setState(() {
+          _relatedProducts = products.where((p) => p.id != currentProductId).toList();
+          debugPrint('Related products fetched: ${_relatedProducts.length}');
+        });
+      }
+    } catch (e) {
+      debugPrint('Error fetching related products: $e');
+      if (mounted) {
+        setState(() { _relatedProducts = []; });
+      }
     } finally {
-      setState(() { _isLoadingRelated = false; });
+      if (mounted) {
+        setState(() { _isLoadingRelated = false; });
+      }
     }
   }
 
@@ -124,10 +135,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             return const Center(child: Text('Produk tidak ditemukan'));
           }
           final product = snapshot.data!;
-          // Fetch related products jika belum
-          if (_relatedProducts.isEmpty && !_isLoadingRelated) {
+          // Fetch related products jika belum dan hanya sekali
+          if (!_hasInitializedRelated && _relatedProducts.isEmpty && !_isLoadingRelated) {
+            _hasInitializedRelated = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              _fetchRelatedProducts(product.kategoriId, product.id);
+              if (mounted && _relatedProducts.isEmpty && !_isLoadingRelated) {
+                _fetchRelatedProducts(product.kategoriId, product.id);
+              }
             });
           }
           return Stack(
@@ -360,7 +374,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                             ),
                           ),
                 if (_isLoadingRelated)
-                  const Center(child: CircularProgressIndicator()),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 24),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
                 if (!_isLoadingRelated && _relatedProducts.isNotEmpty) ...[
                             const SizedBox(height: 32),
                   const Text('Produk Satu Kategori', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
@@ -435,7 +452,19 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           if (!_isLoadingRelated && _relatedProducts.isEmpty)
                             const Padding(
                               padding: EdgeInsets.symmetric(vertical: 24),
-                              child: Center(child: Text('Tidak ada produk lain di kategori ini', style: TextStyle(color: Color(0xFF9E9E9E)))),
+                              child: Center(
+                                child: Column(
+                                  children: [
+                                    Icon(Icons.inbox_outlined, size: 48, color: Color(0xFF9E9E9E)),
+                                    SizedBox(height: 8),
+                                    Text(
+                                      'Tidak ada produk lain di kategori ini',
+                                      style: TextStyle(color: Color(0xFF9E9E9E)),
+                                      textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                         ],
                     ),
@@ -473,24 +502,41 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                                   onPressed: isLoading
                                       ? null
                                       : () async {
-                                          setState(() => _isInCart = true);
-                                          await Future.delayed(const Duration(milliseconds: 300)); // animasi dummy
-                                          if (mounted) {
-                                            ScaffoldMessenger.of(context).showSnackBar(
-                                              SnackBar(
-                                                content: Row(
-                                                  children: const [
-                                                    Icon(Icons.check_circle, color: Color(0xFF22C55E)),
-                                                    SizedBox(width: 8),
-                                                    Text('Produk berhasil ditambahkan ke keranjang!'),
-                                                  ],
+                                          try {
+                                            await cart.addToCart(product.id, 1);
+                                            if (mounted) {
+                                              setState(() => _isInCart = true);
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Row(
+                                                    children: const [
+                                                      Icon(Icons.check_circle, color: Color(0xFF22C55E)),
+                                                      SizedBox(width: 8),
+                                                      Text('Produk berhasil ditambahkan ke keranjang!'),
+                                                    ],
+                                                  ),
+                                                  backgroundColor: Color(0xFFE9D8FD),
+                                                  behavior: SnackBarBehavior.floating,
                                                 ),
-                                                backgroundColor: Color(0xFFE9D8FD),
-                                                behavior: SnackBarBehavior.floating,
-                                              ),
-                                            );
+                                              );
+                                            }
+                                          } catch (e) {
+                                            if (mounted) {
+                                              ScaffoldMessenger.of(context).showSnackBar(
+                                                SnackBar(
+                                                  content: Row(
+                                                    children: [
+                                                      const Icon(Icons.error, color: Color(0xFFEF4444)),
+                                                      const SizedBox(width: 8),
+                                                      Expanded(child: Text('Gagal menambahkan ke keranjang: $e')),
+                                                    ],
+                                                  ),
+                                                  backgroundColor: const Color(0xFFFFF1F2),
+                                                  behavior: SnackBarBehavior.floating,
+                                                ),
+                                              );
+                                            }
                                           }
-                                          await cart.addToCart(product.id, 1);
                                         },
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Color(0xFF7C3AED),

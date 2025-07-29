@@ -32,7 +32,12 @@ class _CheckoutPageState extends State<CheckoutPage> {
   void initState() {
     super.initState();
     debugPrint('CheckoutPage.initState - Starting...');
-    _fetchData();
+    // Refresh cart data terlebih dahulu
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      final cart = Provider.of<CartProvider>(context, listen: false);
+      await cart.forceRefresh();
+      _fetchData();
+    });
   }
 
   Future<void> _fetchData() async {
